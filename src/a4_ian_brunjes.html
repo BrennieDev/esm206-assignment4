@@ -11,7 +11,7 @@
 
 <meta name="author" content="Ian Brunjes" />
 
-<meta name="date" content="2020-11-19" />
+<meta name="date" content="2020-11-20" />
 
 <title>Snowshoe Hares</title>
 
@@ -608,15 +608,15 @@ summary {
 
 <h1 class="title toc-ignore">Snowshoe Hares</h1>
 <h4 class="author">Ian Brunjes</h4>
-<h4 class="date">11/19/2020</h4>
+<h4 class="date">11/20/2020</h4>
 
 </div>
 
 
 <div id="introduction" class="section level2">
 <h2>1. Introduction</h2>
-<p>TODO: A 4 - 5 sentence “mini-introduction” to what this study is exploring, including basic background information about the subject, site and study (with citations as needed), and a brief overview of what is included in the exploratory report. You should probably do this last.</p>
-<p>ex: This report provides an exploratory overview of differences in penguin sizes for three species of nesting adult penguins (gentoo, chinstrap and Adélie) observed on islands within the Palmer Archipelago from 2007 - 2009 (Gorman et al. 2014). Specifically, flipper lengths are compared across the three species, and the relationship(s) between flipper length and body mass explored. <em>Note: moving forward we’ll work on introductions that motivate the work (e.g. “What’s the problem &amp; why does this matter?”) but for now a cursory overview of what’s included is fine…</em></p>
+<p>Snowshoe hares are a keystone prey species in the northern boreal forests of Alaska<sup>1</sup> and therefore represent a vital indicator of overall habitat and population health. A scientific initiative pursued at Bonanza Creek Experimental Forest has yielded insights into several attributes of these hare populations.</p>
+<p>This document will provide an exploratory analysis of these observations on snowshoe hares taken in the Tanana Valley from 1999-2012. Specifically, we examine the differences in weight between male and female juvenile snowshoe hares, the relationship between weight and hind foot length, and overall trends in observation counts across the span of the study.</p>
 </div>
 <div id="data-analyses" class="section level2">
 <h2>2. Data &amp; Analyses</h2>
@@ -698,8 +698,8 @@ Male
 </tr>
 </tbody>
 </table>
-<p>From our t-test, we see the mean weight for the male hares is 10.5762215% higher than mean size for the female group.</p>
-<p>If these samples are indeed drawn from populations that have the same mean size (which is our null hypothesis of this t-test), there is a 0.7% chance that two random samples from these populations would result in samples that are at least as different as the ones observed here. What this means is that if there was no difference in size between male and female samples, there is only a 0.7% chance that a random sampling of this population would result in a difference in mean that is at least as much as we have here.</p>
+<p>From our t-test, we see the mean weight for the male hares is 10.58% higher than mean size for the female group.</p>
+<p>If these samples are indeed drawn from populations that have the same mean size (which is our null hypothesis of this t-test), there is a 0.7% chance that two random samples from these populations would result in samples that are at least as different as the ones observed here. What this means is that if there was no difference in weight between male and female samples, there is only a 0.7% chance that a random sampling of this population would result in a difference in mean that is at least as much as we have here.</p>
 <p>While the p-value might indicate significance, our effect size is on the small side (Cohen’s <em>d</em> = -0.29).</p>
 </div>
 <div id="juvenile-weight-vs-hind-foot-length" class="section level3">
@@ -713,12 +713,11 @@ Male
 </div>
 <div id="summary" class="section level2">
 <h2>4. Summary</h2>
-<p>TODO: Include a very short summary describing your main findings from your juvenile hares exploration (bulletpoints are fine)</p>
-<p>ex: Exploratory data analysis reveals the following initial findings:</p>
+<p>Exploratory data analysis reveals the following initial findings:</p>
 <ul>
-<li>Gentoo penguins are the largest of the three species in both mean flipper length and body mass</li>
-<li>Male gentoo penguins longer mean flipper length than female gentoos (the difference is significant, and the effect size is large)</li>
-<li>Flipper length appears linearly related with body mass across all three penguin species; the relationship (by simple linear regression) is significant, with a slope (expected average increase in body mass with a 1 mm increase in flipper length) of 0.03 g mm<sup>-1</sup>.</li>
+<li>There is a decrease in snowshoe hare population being observed from 1999 - 2012.</li>
+<li>In juvenile snowshoe hares, males are observed to have higher weights than females (the difference is significant, and the effect size is small).</li>
+<li>In juvenile snowshoe hares, Weight appears linearly related with hind foot length; the relationship (by simple linear regression) is significant, with a slope (expected average increase in hind foot length with a 1 g increase in weight) of 0.03 mm g<sup>-1</sup>.</li>
 </ul>
 </div>
 <div id="citations" class="section level2">

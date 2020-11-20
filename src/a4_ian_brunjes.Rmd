@@ -1,7 +1,7 @@
 ---
 title: "Snowshoe Hares"
 author: "Ian Brunjes"
-date: "11/19/2020"
+date: "11/20/2020"
 output: html_document
 ---
 
@@ -18,10 +18,9 @@ library(broom)
 
 ## 1. Introduction
 
-TODO: A 4 - 5 sentence "mini-introduction" to what this study is exploring, including basic background information about the subject, site and study (with citations as needed), and a brief overview of what is included in the exploratory report. You should probably do this last.
+Snowshoe hares are a keystone prey species in the northern boreal forests of Alaska^1^ and therefore represent a vital indicator of overall habitat and population health. A scientific initiative pursued at Bonanza Creek Experimental Forest has yielded insights into several attributes of these hare populations.
 
-ex:
-This report provides an exploratory overview of differences in penguin sizes for three species of nesting adult penguins (gentoo, chinstrap and Adélie) observed on islands within the Palmer Archipelago from 2007 - 2009 (Gorman et al. 2014). Specifically, flipper lengths are compared across the three species, and the relationship(s) between flipper length and body mass explored. *Note: moving forward we'll work on introductions that motivate the work (e.g. "What's the problem & why does this matter?") but for now a cursory overview of what's included is fine...*
+This document will provide an exploratory analysis of these observations on snowshoe hares taken in the Tanana Valley from 1999-2012. Specifically, we examine the differences in weight between male and female juvenile snowshoe hares, the relationship between weight and hind foot length, and overall trends in observation counts across the span of the study.
 
 ## 2. Data & Analyses
 
@@ -76,7 +75,7 @@ ggplot(data = juvenile_hares_annual_count, aes(x = year, y = count)) +
 **Figure 3.1.1:** Annual Hare Counts.
 
 ```{r include=FALSE}
-# Find min/max and mean/median values of annual hare counts
+# Find max/mean/median values of annual hare counts
 annual_count_mean <- mean(juvenile_hares_annual_count$count)
 annual_count_median <- median(juvenile_hares_annual_count$count)
 annual_count_max <- max(juvenile_hares_annual_count$count)
@@ -147,7 +146,6 @@ male_juvenile_weights <- juvenile_hares %>%
   drop_na(weight) %>% 
   pull(weight)
 
-# Check assumptions of normality via hist & qq
 # Plot histograms & qq-plots to check assumptions
 hist(male_juvenile_weights) # Looks relatively normal
 qqnorm(male_juvenile_weights) # Relatively linear
@@ -165,7 +163,8 @@ female_mean <- mean(female_juvenile_weights)
 male_sd <- sd(male_juvenile_weights)
 female_sd <- sd(female_juvenile_weights)
 
-mean_diff_pct <- (male_mean-female_mean)/female_mean * 100
+# Calculate percent difference of means
+mean_diff_pct <- round((male_mean-female_mean)/female_mean * 100, 2)
 
 # Get the effect size: 
 hares_effsize <- cohen.d(female_juvenile_weights, male_juvenile_weights)
@@ -173,7 +172,7 @@ hares_effsize <- cohen.d(female_juvenile_weights, male_juvenile_weights)
 
 From our t-test, we see the mean weight for the male hares is `r mean_diff_pct`% higher than mean size for the female group.
 
-If these samples are indeed drawn from populations that have the same mean size (which is our null hypothesis of this t-test), there is a 0.7% chance that two random samples from these populations would result in samples that are at least as different as the ones observed here. What this means is that if there was no difference in size between male and female samples, there is only a 0.7% chance that a random sampling of this population would result in a difference in mean that is at least as much as we have here.
+If these samples are indeed drawn from populations that have the same mean size (which is our null hypothesis of this t-test), there is a 0.7% chance that two random samples from these populations would result in samples that are at least as different as the ones observed here. What this means is that if there was no difference in weight between male and female samples, there is only a 0.7% chance that a random sampling of this population would result in a difference in mean that is at least as much as we have here.
 
 While the p-value might indicate significance, our effect size is on the small side (Cohen's *d* = `r round(hares_effsize$estimate,2)`).
 
@@ -225,15 +224,13 @@ Checking against the assumptions of linear regression, there is evidence of homo
 
 ## 4. Summary
 
-TODO: Include a very short summary describing your main findings from your juvenile hares exploration (bulletpoints are fine)
-
-ex:
 Exploratory data analysis reveals the following initial findings: 
 
-- Gentoo penguins are the largest of the three species in both mean flipper length and body mass
-- Male gentoo penguins longer mean flipper length than female gentoos (the difference is significant, and the effect size is large)
-- Flipper length appears linearly related with body mass across all three penguin species; the relationship (by simple linear regression) is significant, with a slope (expected average increase in body mass with a 1 mm increase in flipper length) of `r round(hares_lm_tidy$estimate[2], 2)` g mm^-1^.
+- There is a decrease in snowshoe hare population being observed from 1999 - 2012.
+- In juvenile snowshoe hares, males are observed to have higher weights than females (the difference is significant, and the effect size is small).
+- In juvenile snowshoe hares, Weight appears linearly related with hind foot length; the relationship (by simple linear regression) is significant, with a slope (expected average increase in hind foot length with a 1 g increase in weight) of `r round(hares_lm_tidy$estimate[2], 2)` mm g^-1^.
 
 ## 5. Citations
 
 ^1^**Kielland, K., F.S. Chapin, R.W. Ruess, and Bonanza Creek LTER.** 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present ver 22. Environmental Data Initiative. https://doi.org/10.6073/pasta/03dce4856d79b91557d8e6ce2cbcdc14
+
