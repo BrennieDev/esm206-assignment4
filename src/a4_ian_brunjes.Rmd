@@ -1,0 +1,239 @@
+---
+title: "Snowshoe Hares"
+author: "Ian Brunjes"
+date: "11/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+library(tidyverse)
+library(ggbeeswarm)
+library(kableExtra)
+library(here)
+library(effsize)
+library(broom)
+```
+
+## 1. Introduction
+
+TODO: A 4 - 5 sentence "mini-introduction" to what this study is exploring, including basic background information about the subject, site and study (with citations as needed), and a brief overview of what is included in the exploratory report. You should probably do this last.
+
+ex:
+This report provides an exploratory overview of differences in penguin sizes for three species of nesting adult penguins (gentoo, chinstrap and Adélie) observed on islands within the Palmer Archipelago from 2007 - 2009 (Gorman et al. 2014). Specifically, flipper lengths are compared across the three species, and the relationship(s) between flipper length and body mass explored. *Note: moving forward we'll work on introductions that motivate the work (e.g. "What's the problem & why does this matter?") but for now a cursory overview of what's included is fine...*
+
+## 2. Data & Analyses
+
+This data is the result of capture-recapture studies of snowshoe hares at 5 locales in the Tanana valley, from Tok in the east to Clear in the west in the years from 1999 to 2002. Physical attributes including sex, age, weight, and hind foot size were recorded against the trapped hares, as well as site and trap identifiers of the observations.
+
+Using summary statistics, 2-sample t-tests, and linear regression modeling, we compare the juvenile weights of male and female snowshoe hares, as well as the relationship between weight and hind foot length.
+
+Data is made available by the Bonanza Creek LTER and the Environmental Data Initiative.^1^
+
+```{r include=FALSE}
+# Read in data from 'data/bonanza_hares.csv'
+hares_data <- read_csv(here("data", "bonanza_hares.csv"))
+```
+
+## 3. Exploratory Findings
+
+### 3.1 Juvenile hare trap counts
+
+```{r include=FALSE}
+# Filter hare data to examine only juvenile hare traps
+juvenile_hares <- hares_data %>%
+  filter(age == "j")
+
+# Coerce the date to a more parse-able format to derive year
+juvenile_hares_year <- juvenile_hares %>% 
+  mutate(date = mdy(date)) %>% 
+  mutate(year = year(date))
+  
+# Get the total counts of hares recorded in each year of the study
+juvenile_hares_annual_count <- juvenile_hares_year %>% 
+  group_by(year) %>% 
+  count(name = "count")
+```
+
+```{r echo=FALSE}
+# Plot the annual counts of juvenile hares
+ggplot(data = juvenile_hares_annual_count, aes(x = year, y = count)) +
+  geom_col(fill="#f68060") +
+  labs(y = "Number of Hares Observed\n") +
+  scale_x_continuous(breaks = seq(1999, 2012, 1)) +
+  scale_y_continuous(breaks = seq(0, 120, 20)) +
+  theme_minimal() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title = element_text(size=12),
+    axis.text = element_text(size=10, face="bold")
+  )
+```
+
+**Figure 3.1.1:** Annual Hare Counts.
+
+```{r include=FALSE}
+# Find min/max and mean/median values of annual hare counts
+annual_count_mean <- mean(juvenile_hares_annual_count$count)
+annual_count_median <- median(juvenile_hares_annual_count$count)
+annual_count_max <- max(juvenile_hares_annual_count$count)
+```
+
+There is a general downward trend in the number of hares counted over time. The maximum number of hares (`r annual_count_max`), observed in the very first year, was much higher than the mean (`r annual_count_mean`) or median (`r annual_count_median`) observed across all years. To standardize the hare population estimates based on this count data, I would suggest creating a metric of hares counted per traps set per day. Since the number of traps utilized in each site and number of days visited in a site could skew the number of hares observed to be higher than in other sites.
+
+### 3.2 Juvenile hare weights
+
+```{r echo=FALSE, warning=FALSE}
+# Build label vectors for plot annotation
+site_names <- c("Black Spruce", "Mature", "Riparian")
+names(site_names) <- c("bonbs", "bonmat", "bonrip")
+sexes <- c("Female", "Male", "NA")
+
+# Plot hare weight and sex for each site
+ggplot(data = juvenile_hares, aes(x = sex, y = weight)) +
+  geom_boxplot(width = 0.5, outlier.color = NA) +
+  geom_point(aes(color = sex), alpha = 0.3, size = 2) +
+  facet_wrap(~grid, labeller = labeller(grid = site_names)) +
+  theme_light() +
+  labs(x = "\nSex",
+       y = "Weight (g)\n") +
+  theme(legend.position = "none") +
+  scale_x_discrete(labels = sexes)
+```
+
+**Figure 3.2.1:** Weight of juvenile hares by sex at each observation site.
+
+The observations of female and male snowshoe hare weight, depicted within each site where they were recorded, shows there is a relative similarity between the weights of the two sexes. From the box plot summary statistics, we can notice that while the median weight for males was higher at each site, the interquartile range of male and female at each site overlap quite a bit.
+
+
+### 3.3 Juvenile weight comparison
+
+**Table 3.3.1:** Descriptive statistics (mean, median, standard deviation, and sample size) of the weight of juvenile male and female hares.
+```{r echo = FALSE, message=FALSE}
+# Build summary statistics table for weight of male and female juvenile hares
+juvenile_hares_stats <- juvenile_hares %>%
+  drop_na(sex) %>% # only comparing male and female sex specifically, NA not needed
+  drop_na(weight) %>%  # NA values won't contribute to summary stats, so remove for accurate sample size
+  mutate(sex = case_when(
+    sex == "f" ~ "Female",
+    sex == "m" ~ "Male"
+  )) %>% 
+  group_by(sex) %>% 
+  summarize(
+    mean = mean(weight),
+    median = median(weight),
+    sd = sd(weight),
+    count = n()
+  )
+
+# Output summary stats as nicely formatted table
+juvenile_hares_stats %>% 
+  kable(col.names = c("Sex", "Mean weight (g)", "Median weight (g)", "Standard deviation (g)", "Sample size")) %>% 
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+```{r include=FALSE}
+# Derive our two samples for weight comparison: male and female hares
+female_juvenile_weights <- juvenile_hares %>% 
+  filter(sex == "f") %>%
+  drop_na(weight) %>% 
+  pull(weight)
+
+male_juvenile_weights <- juvenile_hares %>% 
+  filter(sex == "m") %>% 
+  drop_na(weight) %>% 
+  pull(weight)
+
+# Check assumptions of normality via hist & qq
+# Plot histograms & qq-plots to check assumptions
+hist(male_juvenile_weights) # Looks relatively normal
+qqnorm(male_juvenile_weights) # Relatively linear
+hist(female_juvenile_weights) # Looks normal
+qqnorm(female_juvenile_weights) # Looks very linear
+
+# Overall: assumptions of normality hold, & sample size additionally >> Central Limit Theorem (means will be normally distributed). Two-sample t-test OK for means comparison!
+
+# Run 2-sample t-test using these vectors
+t.test(x = female_juvenile_weights, y = male_juvenile_weights)
+
+# Get the means & SDs for each: 
+male_mean <- mean(male_juvenile_weights)
+female_mean <- mean(female_juvenile_weights)
+male_sd <- sd(male_juvenile_weights)
+female_sd <- sd(female_juvenile_weights)
+
+mean_diff_pct <- (male_mean-female_mean)/female_mean * 100
+
+# Get the effect size: 
+hares_effsize <- cohen.d(female_juvenile_weights, male_juvenile_weights)
+```
+
+From our t-test, we see the mean weight for the male hares is `r mean_diff_pct`% higher than mean size for the female group.
+
+If these samples are indeed drawn from populations that have the same mean size (which is our null hypothesis of this t-test), there is a 0.7% chance that two random samples from these populations would result in samples that are at least as different as the ones observed here. What this means is that if there was no difference in size between male and female samples, there is only a 0.7% chance that a random sampling of this population would result in a difference in mean that is at least as much as we have here.
+
+While the p-value might indicate significance, our effect size is on the small side (Cohen's *d* = `r round(hares_effsize$estimate,2)`).
+
+### 3.4 Juvenile weight vs hind foot length
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Massage the data set for comparison of weight vs hind foot length
+juvenile_hares %>% ggplot(aes(x = weight, y = hindft)) +
+  geom_point(color = "cadetblue") +
+  theme_minimal() +
+  geom_smooth(method = "lm", se = FALSE, color = "gray30") +
+  labs(x = "\nWeight (g)", y = "Hind foot length (mm)\n") +
+  theme(legend.position = c(0.8,0.25))
+```
+
+**Figure 3.4.1:** Relationship of weight (g) and hind foot length (mm) in juvenile snowshoe hares.
+
+```{r include=FALSE}
+# Build a linear regression model for weight and height foot length relation
+hares_lm <- lm(hindft ~ weight, data = juvenile_hares)
+hares_lm_tidy <- broom::tidy(hares_lm)
+
+hares_int <- hares_lm_tidy$estimate[[1]]
+hares_coef <- hares_lm_tidy$estimate[[2]]
+
+hares_lm_out <- broom::glance(hares_lm)
+
+# Check assumptions for linear regression usage using plot()
+plot(hares_lm)
+# The spread of residuals about the fitted value looks fairly constant across the span of the x axis.
+# Evidence of homostedasticity
+# No outliers identified with too much influence in the model
+# The residuals appear normally distributed except at the beginning which might indicate an issue in attempting to apply a linear model
+
+# Get Pearson's r correlation
+hares_cor <- cor.test(juvenile_hares$hindft, juvenile_hares$weight)
+
+# Tidy version of correlation output:
+hares_cor_tidy <- tidy(hares_cor)
+```
+
+Simple linear regression was used to explore the relationship between penguin weight (g) and hind foot length (mm) for all recorded juvenile snoeshow hares. A significant regression model was found ($\beta$ = `r round(hares_coef,3)`, F(`r hares_lm_out$df`,`r hares_lm_out$df.residual`) = `r round(hares_lm_out$statistic,1)`, p < 0.001) with an R^2^ of `r round(hares_lm_out$r.squared,3)`.
+
+The relationship between weight and hind foot length appears relatively linear (Figure 3.4.1). Simple linear regression revealed that weight only somewhat predicts hind foot length (p < 0.001, R^2^ = `r round(hares_lm_out$r.squared,2)`) with an average slope of $\beta$ = `r round(hares_lm_tidy$estimate[2], 2)` mm g^-1^ (i.e., for each one gram increase in weight we expect an average increase in weight of `r round(hares_lm_tidy$estimate[2], 2)` mm). Hare weight and hind foot length have a moderate positive correlation (Pearson's *r* = `r round(hares_cor_tidy$estimate,2)`, p < 0.001).
+
+
+Checking against the assumptions of linear regression, there is evidence of homoscedastic residuals with no strongly influencing outliers, but there is a concerning trend in lower weight values that might indicate the linear model is not accurately descriptive of the relationship between weight and hind foot length in juvenile snowshoe hares.
+
+
+## 4. Summary
+
+TODO: Include a very short summary describing your main findings from your juvenile hares exploration (bulletpoints are fine)
+
+ex:
+Exploratory data analysis reveals the following initial findings: 
+
+- Gentoo penguins are the largest of the three species in both mean flipper length and body mass
+- Male gentoo penguins longer mean flipper length than female gentoos (the difference is significant, and the effect size is large)
+- Flipper length appears linearly related with body mass across all three penguin species; the relationship (by simple linear regression) is significant, with a slope (expected average increase in body mass with a 1 mm increase in flipper length) of `r round(hares_lm_tidy$estimate[2], 2)` g mm^-1^.
+
+## 5. Citations
+
+^1^**Kielland, K., F.S. Chapin, R.W. Ruess, and Bonanza Creek LTER.** 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present ver 22. Environmental Data Initiative. https://doi.org/10.6073/pasta/03dce4856d79b91557d8e6ce2cbcdc14
